@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Talkify is Ownable {
     // Store Talks
     uint256 public talkCount = 0;
+
     mapping(uint256 => Talk) public talks;
     mapping(uint256 => bool) private _exists;
     mapping(address => mapping(uint => bool)) public listened;
@@ -78,6 +79,8 @@ contract Talkify is Ownable {
             timesListened: 0,
             author: payable(msg.sender)
         });
+
+        // talk exists
         _exists[talkCount] = true;
 
         // emit the event of talk created
@@ -100,10 +103,11 @@ contract Talkify is Ownable {
         // get the talk
         Talk storage _talk = talks[_id];
 
+        // Owner cannot tip themselves
         require(_talk.author != msg.sender, "You can't tip yourself");
 
-        uint newTipAmount = _talk.tipAmount + msg.value;
         // update the tip amount
+        uint newTipAmount = _talk.tipAmount + msg.value;
         _talk.tipAmount = newTipAmount;
 
         // increase the ratings by 100
@@ -129,10 +133,13 @@ contract Talkify is Ownable {
      * @param _id: the id of the talk to listen
      */
     function listenToTalk(uint256 _id) public exists(_id) {
+        // User has already listened
         require(!listened[msg.sender][_id], "Already listened to podcast");
+
         // get the talk
         Talk storage _talk = talks[_id];
-
+        
+        // listened to the talk
         listened[msg.sender][_id] = true;
 
         // increment listeners
@@ -147,6 +154,7 @@ contract Talkify is Ownable {
      * @param _id: the id of the talk to be removed
      */
     function removeTalk(uint256 _id) public onlyOwner exists(_id) {
+        // talk does not exit
         _exists[_id] = false;
         // delete the talk
         delete talks[_id];
